@@ -3,7 +3,7 @@ terraform {
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
-      version = "~>0.78"
+      version = "~> 0.111.1"
     }
   }
 }
@@ -18,14 +18,14 @@ locals {
   vm_nodes = toset([for vm in values(var.vms) : vm.vm_node])
 }
 
-resource "proxmox_download_file" "ubuntu_noble_cloud_image" {
+resource "proxmox_download_file" "ubuntu_resolute_cloud_image" {
   for_each = local.vm_nodes
 
   content_type   = "import"
   datastore_id   = "local"
-  file_name      = "noble-server-cloudimg-amd64.qcow2"
+  file_name      = "ubuntu-26.04-server-cloudimg-amd64.qcow2"
   node_name      = each.value
-  url            = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+  url            = "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-amd64.img"
   overwrite      = false
   upload_timeout = 3600
 }
@@ -47,7 +47,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   disk {
     datastore_id = "local-lvm"
-    import_from  = proxmox_download_file.ubuntu_noble_cloud_image[each.value.vm_node].id
+    import_from  = proxmox_download_file.ubuntu_resolute_cloud_image[each.value.vm_node].id
     interface    = "scsi0"
     size         = each.value.resources.disk
   }
