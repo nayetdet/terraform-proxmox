@@ -17,7 +17,7 @@ Provisiona VMs no Proxmox via Terraform usando a provider `bpg/proxmox`.
 ## Requisitos
 
 - Acesso ao Proxmox com token de API
-- Chave pública SSH disponível no caminho esperado pelo Terraform
+- Chave pública SSH opcional em `~/.ssh/id_ed25519.pub`
 
 ## Como usar
 
@@ -36,14 +36,18 @@ proxmox_insecure  = false
 
 vms = {
   "vm-01" = {
-    vm_id    = 101
-    vm_node  = "pve01"
-    username = "ubuntu"
-    password = "changeme"
+    metadata = {
+      vm_id   = 101
+      vm_node = "pve01"
+    }
+    user = {
+      username = "ubuntu"
+      password = "changeme"
+    }
     resources = {
-      cpu_cores = 2
-      memory    = 2048
-      disk      = 20
+      cores   = 2
+      ram_mb  = 2048
+      disk_gb = 20
     }
     networking = {
       ipv4    = "192.168.1.101/24"
@@ -89,12 +93,12 @@ Define se a verificação TLS deve ser ignorada. O padrão é `false`.
 
 Mapa de VMs, indexado pelo nome da VM. Cada entrada espera:
 
-- `vm_id`: ID numérico da VM no Proxmox
-- `vm_node`: nó do Proxmox onde a VM será criada
-- `username`: usuário inicial da VM
-- `password`: senha inicial da VM
-- `resources.cpu_cores`: quantidade de vCPUs
-- `resources.memory`: memória em MB
-- `resources.disk`: tamanho do disco conforme esperado pelo provider
+- `metadata.vm_id`: ID numérico da VM no Proxmox
+- `metadata.vm_node`: nó do Proxmox onde a VM será criada
+- `user.username`: usuário inicial da VM
+- `user.password`: senha inicial da VM
+- `resources.cores`: quantidade de vCPUs
+- `resources.ram_mb`: memória em MB
+- `resources.disk_gb`: tamanho do disco em GB
 - `networking.ipv4`: IP com prefixo, por exemplo `192.168.1.101/24`
 - `networking.gateway`: gateway padrão

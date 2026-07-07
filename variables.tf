@@ -18,14 +18,18 @@ variable "proxmox_insecure" {
 variable "vms" {
   description = "Map of VM definitions keyed by VM name"
   type = map(object({
-    vm_id    = number
-    vm_node  = string
-    username = string
-    password = string
+    metadata = object({
+      vm_id   = number
+      vm_node = string
+    })
+    user = object({
+      username = string
+      password = string
+    })
     resources = object({
-      cpu_cores = number
-      memory    = number
-      disk      = number
+      cores   = number
+      ram_mb  = number
+      disk_gb = number
     })
     networking = object({
       ipv4    = string

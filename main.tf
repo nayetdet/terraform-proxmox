@@ -15,7 +15,7 @@ provider "proxmox" {
 }
 
 locals {
-  vm_nodes = toset([for vm in values(var.vms) : vm.vm_node])
+  vm_nodes = toset([for vm in values(var.vms) : vm.metadata.vm_node])
 }
 
 resource "proxmox_download_file" "ubuntu_resolute_cloud_image" {
@@ -34,22 +34,22 @@ resource "proxmox_virtual_environment_vm" "vm" {
   for_each = var.vms
 
   name      = each.key
-  node_name = each.value.vm_node
-  vm_id     = each.value.vm_id
+  node_name = each.value.metadata.vm_node
+  vm_id     = each.value.metadata.vm_id
 
   cpu {
-    cores = each.value.resources.cpu_cores
+    cores = each.value.resources.cores
   }
 
   memory {
-    dedicated = each.value.resources.memory
+    dedicated = each.value.resources.ram_mb
   }
 
   disk {
     datastore_id = "local-lvm"
-    import_from  = proxmox_download_file.ubuntu_resolute_cloud_image[each.value.vm_node].id
+    import_from  = proxmox_download_file.ubuntu_resolute_cloud_image[each.value.metadata.vm_node].id
     interface    = "scsi0"
-    size         = each.value.resources.disk
+    size         = each.value.resources.disk_gb
   }
 
   initialization {
@@ -63,9 +63,9 @@ resource "proxmox_virtual_environment_vm" "vm" {
     }
 
     user_account {
-      username = each.value.username
-      password = each.value.password
-      keys     = [file(pathexpand("~/.ssh/id_ed25519.pub"))]
+      username = each.value.user.username
+      password = each.value.user.password
+      keys     = fileexists(pathexpand("~/.ssh/id_ed25519.pub")) ? [file(pathexpand("~/.ssh/id_ed25519.pub"))] : []
     }
   }
 
