@@ -3,5 +3,6 @@
   become: yes
   roles:
     - docker
+    - firewall
     - ssh
     - tools
