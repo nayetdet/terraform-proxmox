@@ -1,0 +1,19 @@
+#SPDX-License-Identifier: MIT-0
+---
+# install and configure ssh
+- ansible.builtin.service:
+    name: ssh
+    state: started
+    enabled: yes
+
+- ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/99-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      PubkeyAuthentication yes
+      X11Forwarding no
+  notify: Restart ssh
