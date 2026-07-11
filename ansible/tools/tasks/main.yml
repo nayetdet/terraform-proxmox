@@ -1,7 +1,4 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # tasks file for tools
-- ansible.builtin.apt:
-    name: fastfetch
-    state: present
-    update_cache: true
+- ansible.builtin.import_tasks: fastfetch.yml
