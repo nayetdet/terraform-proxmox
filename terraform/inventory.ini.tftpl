@@ -1,0 +1,4 @@
+[vm]
+%{ for name, vm in vms ~}
+${name} ansible_host=${split("/", vm.networking.ipv4)[0]} ansible_user=${vm.user.username}
+%{ endfor ~}

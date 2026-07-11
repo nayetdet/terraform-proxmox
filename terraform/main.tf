@@ -20,21 +20,11 @@ provider "proxmox" {
 
 locals {
   vm_nodes = toset([for vm in values(var.vms) : vm.metadata.vm_node])
-  ansible_inventory = {
-    all = {
-      hosts = {
-        for name, vm in var.vms : name => {
-          ansible_host = split("/", vm.networking.ipv4)[0]
-          ansible_user = vm.user.username
-        }
-      }
-    }
-  }
 }
 
 resource "local_file" "ansible_inventory" {
-  filename        = "${path.root}/../ansible/inventory.yml"
-  content         = yamlencode(local.ansible_inventory)
+  filename        = "${path.root}/../ansible/inventory.ini"
+  content         = templatefile("${path.module}/inventory.ini.tftpl", { vms = var.vms })
   file_permission = "0644"
 }
 

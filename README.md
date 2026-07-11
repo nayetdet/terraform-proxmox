@@ -7,7 +7,7 @@ Provisiona VMs no Proxmox via Terraform usando a provider `bpg/proxmox`.
 - Conecta no endpoint da API do Proxmox com token.
 - Cria uma ou mais VMs a partir de uma definição em `terraform/variables.tf` via `var.vms`.
 - Configura CPU, memória, disco, rede, usuário e senha inicial.
-- Gera o inventory do Ansible em `ansible/inventory.yml`.
+- Gera o inventory do Ansible em `ansible/inventory.ini`.
 
 ## Estrutura
 
@@ -15,7 +15,7 @@ Provisiona VMs no Proxmox via Terraform usando a provider `bpg/proxmox`.
 - `terraform/variables.tf`: variáveis de entrada.
 - `terraform/terraform.tfvars`: exemplo de valores locais para o Terraform.
 - `shell.nix`: ambiente com `terraform`.
-- `ansible/inventory.yml`: inventory gerado automaticamente pelo Terraform e usado pelo Ansible.
+- `ansible/inventory.ini`: inventory gerado automaticamente pelo Terraform e usado pelo Ansible.
 
 ## Requisitos
 
@@ -84,7 +84,7 @@ terraform plan
 terraform apply
 ```
 
-Isso também gera `ansible/inventory.yml` com os hosts provisionados.
+Isso também gera `ansible/inventory.ini` com os hosts provisionados.
 
 7. Rode o Ansible a partir da pasta `ansible/`:
 

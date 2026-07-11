@@ -4,5 +4,5 @@
 # Retry files generated for failed Ansible playbook runs
 *.retry
 
-# Inventory gerado pelo Terraform
-inventory.yml
+# Inventory generated automatically by Terraform
+inventory.ini
