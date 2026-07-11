@@ -5,14 +5,17 @@ Provisiona VMs no Proxmox via Terraform usando a provider `bpg/proxmox`.
 ## O que ele faz
 
 - Conecta no endpoint da API do Proxmox com token.
-- Cria uma ou mais VMs a partir de uma definição em `var.vms`.
+- Cria uma ou mais VMs a partir de uma definição em `terraform/variables.tf` via `var.vms`.
 - Configura CPU, memória, disco, rede, usuário e senha inicial.
+- Gera o inventory do Ansible em `ansible/inventory.yml`.
 
 ## Estrutura
 
-- `main.tf`: configuração do provider e recursos de criação das VMs.
-- `variables.tf`: variáveis de entrada.
+- `terraform/main.tf`: configuração do provider e recursos de criação das VMs.
+- `terraform/variables.tf`: variáveis de entrada.
+- `terraform/terraform.tfvars`: exemplo de valores locais para o Terraform.
 - `shell.nix`: ambiente com `terraform`.
+- `ansible/inventory.yml`: inventory gerado automaticamente pelo Terraform e usado pelo Ansible.
 
 ## Requisitos
 
@@ -27,7 +30,13 @@ Provisiona VMs no Proxmox via Terraform usando a provider `bpg/proxmox`.
 nix-shell
 ```
 
-2. Crie um arquivo `terraform.tfvars` com seus dados:
+2. Entre na pasta do Terraform:
+
+```bash
+cd terraform
+```
+
+3. Crie um arquivo `terraform.tfvars` com seus dados:
 
 ```hcl
 proxmox_endpoint  = "https://pve.example.com:8006/"
@@ -57,22 +66,31 @@ vms = {
 }
 ```
 
-3. Inicialize o Terraform:
+4. Inicialize o Terraform:
 
 ```bash
 terraform init
 ```
 
-4. Revise o plano:
+5. Revise o plano:
 
 ```bash
 terraform plan
 ```
 
-5. Aplique:
+6. Aplique:
 
 ```bash
 terraform apply
+```
+
+Isso também gera `ansible/inventory.yml` com os hosts provisionados.
+
+7. Rode o Ansible a partir da pasta `ansible/`:
+
+```bash
+cd ansible
+ansible-playbook playbook.yml
 ```
 
 ## Variáveis

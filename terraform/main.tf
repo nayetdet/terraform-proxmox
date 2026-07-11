@@ -1,6 +1,10 @@
 terraform {
   required_version = ">= 1.5.0"
   required_providers {
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.5.0"
+    }
     proxmox = {
       source  = "bpg/proxmox"
       version = "~> 0.111.1"
@@ -16,9 +20,25 @@ provider "proxmox" {
 
 locals {
   vm_nodes = toset([for vm in values(var.vms) : vm.metadata.vm_node])
+  ansible_inventory = {
+    all = {
+      hosts = {
+        for name, vm in var.vms : name => {
+          ansible_host = split("/", vm.networking.ipv4)[0]
+          ansible_user = vm.user.username
+        }
+      }
+    }
+  }
 }
 
-resource "proxmox_download_file" "ubuntu_resolute_cloud_image" {
+resource "local_file" "ansible_inventory" {
+  filename        = "${path.root}/../ansible/inventory.yml"
+  content         = yamlencode(local.ansible_inventory)
+  file_permission = "0644"
+}
+
+resource "proxmox_download_file" "vm_image" {
   for_each = local.vm_nodes
 
   content_type   = "import"
@@ -47,7 +67,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   disk {
     datastore_id = "local-lvm"
-    import_from  = proxmox_download_file.ubuntu_resolute_cloud_image[each.value.metadata.vm_node].id
+    import_from  = proxmox_download_file.vm_image[each.value.metadata.vm_node].id
     interface    = "scsi0"
     size         = each.value.resources.disk_gb
   }
