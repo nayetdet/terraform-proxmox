@@ -1,7 +1,7 @@
 #SPDX-License-Identifier: MIT-0
 ---
-# install fastfetch
-- ansible.builtin.apt:
+- name: Install Fastfetch
+  ansible.builtin.apt:
     name: fastfetch
     state: present
     update_cache: true

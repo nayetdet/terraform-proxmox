@@ -1,4 +1,4 @@
 #SPDX-License-Identifier: MIT-0
 ---
-# defaults file for tools
+# defaults file for shell
 user: "{{ ansible_user | default(ansible_facts['user_id']) }}"

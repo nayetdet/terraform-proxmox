@@ -4,5 +4,6 @@
   roles:
     - docker
     - firewall
+    - shell
     - ssh
     - tools

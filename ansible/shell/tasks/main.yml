@@ -1,0 +1,75 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for shell
+- name: Install Zsh dependencies
+  ansible.builtin.apt:
+    name:
+      - git
+      - zsh
+    state: present
+    update_cache: true
+
+- name: Resolve the user's home directory
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ user }}"
+
+- name: Set Zsh configuration paths
+  ansible.builtin.set_fact:
+    zsh_home: "{{ ansible_facts['getent_passwd'][user][4] }}"
+    zsh_oh_my_zsh_dir: "{{ ansible_facts['getent_passwd'][user][4] }}/.oh-my-zsh"
+
+- name: Check for an existing Zsh configuration
+  ansible.builtin.stat:
+    path: "{{ zsh_home }}/.zshrc"
+  register: zshrc
+
+- name: Clone Oh My Zsh
+  ansible.builtin.git:
+    repo: https://github.com/ohmyzsh/ohmyzsh.git
+    dest: "{{ zsh_oh_my_zsh_dir }}"
+    version: master
+    depth: 1
+  become_user: "{{ user }}"
+
+- name: Install zsh-completions
+  ansible.builtin.git:
+    repo: https://github.com/zsh-users/zsh-completions.git
+    dest: "{{ zsh_oh_my_zsh_dir }}/custom/plugins/zsh-completions"
+    version: master
+    depth: 1
+  become_user: "{{ user }}"
+
+- name: Install zsh-autosuggestions
+  ansible.builtin.git:
+    repo: https://github.com/zsh-users/zsh-autosuggestions.git
+    dest: "{{ zsh_oh_my_zsh_dir }}/custom/plugins/zsh-autosuggestions"
+    version: master
+    depth: 1
+  become_user: "{{ user }}"
+
+- name: Install zsh-syntax-highlighting
+  ansible.builtin.git:
+    repo: https://github.com/zsh-users/zsh-syntax-highlighting.git
+    dest: "{{ zsh_oh_my_zsh_dir }}/custom/plugins/zsh-syntax-highlighting"
+    version: master
+    depth: 1
+  become_user: "{{ user }}"
+
+- name: Configure .zshrc
+  ansible.builtin.copy:
+    dest: "{{ zsh_home }}/.zshrc"
+    content: |
+      export ZSH="{{ zsh_oh_my_zsh_dir }}"
+      ZSH_THEME="gentoo"
+      plugins=(git zsh-completions zsh-autosuggestions zsh-syntax-highlighting)
+      source $ZSH/oh-my-zsh.sh
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: "0644"
+  when: not zshrc.stat.exists
+
+- name: Set Zsh as the default shell
+  ansible.builtin.user:
+    name: "{{ user }}"
+    shell: /usr/bin/zsh

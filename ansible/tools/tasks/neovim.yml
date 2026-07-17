@@ -1,0 +1,79 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Install Neovim dependencies
+  ansible.builtin.apt:
+    name:
+      - curl
+      - fd-find
+      - git
+      - neovim
+      - ripgrep
+      - unzip
+    state: present
+    update_cache: true
+
+- name: Resolve the user's home directory
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ user }}"
+
+- name: Set the Neovim configuration path
+  ansible.builtin.set_fact:
+    neovim_config_dir: "{{ ansible_facts['getent_passwd'][user][4] }}/.config/nvim"
+
+- name: Check for an existing Neovim configuration
+  ansible.builtin.stat:
+    path: "{{ neovim_config_dir }}"
+  register: neovim_config
+
+- name: Clone the LazyVim starter
+  ansible.builtin.git:
+    repo: https://github.com/LazyVim/starter.git
+    dest: "{{ neovim_config_dir }}"
+    version: main
+    depth: 1
+  become_user: "{{ user }}"
+  when: not neovim_config.stat.exists
+
+- name: Enable absolute line numbers
+  ansible.builtin.copy:
+    dest: "{{ neovim_config_dir }}/lua/config/options.lua"
+    content: |
+      vim.opt.number = true
+      vim.opt.relativenumber = false
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: "0644"
+  when: not neovim_config.stat.exists
+
+- name: Set the Carbonfox colorscheme
+  ansible.builtin.copy:
+    dest: "{{ neovim_config_dir }}/lua/plugins/colorscheme.lua"
+    content: |
+      return {
+        {
+          "EdenEast/nightfox.nvim",
+          priority = 1000,
+          config = function()
+            vim.cmd.colorscheme("carbonfox")
+          end,
+        },
+      }
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: "0644"
+  when: not neovim_config.stat.exists
+
+- name: Remove the Git metadata
+  ansible.builtin.file:
+    path: "{{ neovim_config_dir }}/.git"
+    state: absent
+  when: not neovim_config.stat.exists
+
+- name: Set Neovim configuration ownership
+  ansible.builtin.file:
+    path: "{{ neovim_config_dir }}"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    recurse: true
+  when: not neovim_config.stat.exists

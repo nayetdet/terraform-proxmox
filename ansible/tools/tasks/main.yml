@@ -1,4 +1,8 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # tasks file for tools
-- ansible.builtin.import_tasks: fastfetch.yml
+- name: Include Fastfetch tasks
+  ansible.builtin.import_tasks: fastfetch.yml
+
+- name: Include Neovim tasks
+  ansible.builtin.import_tasks: neovim.yml
