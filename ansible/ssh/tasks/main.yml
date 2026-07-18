@@ -3,5 +3,6 @@
 # tasks file for ssh
 - name: Include SSH tasks
   ansible.builtin.import_tasks: ssh.yml
+
 - name: Include Fail2ban tasks
   ansible.builtin.import_tasks: fail2ban.yml
