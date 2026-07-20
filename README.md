@@ -4,7 +4,7 @@ Provisiona VMs e containers LXC no Proxmox via Terraform usando o provider `bpg/
 
 ## O que ele faz
 
-- Conecta no endpoint da API do Proxmox com token.
+- Conecta no endpoint da API do Proxmox com `root@pam`.
 - Cria VMs e containers LXC a partir de uma definição única em `var.instances`.
 - Usa `type = "vm"` ou `type = "container"` para escolher o tipo.
 - Configura CPU, memória, disco, rede, usuário e senha inicial.
@@ -20,7 +20,7 @@ Provisiona VMs e containers LXC no Proxmox via Terraform usando o provider `bpg/
 
 ## Requisitos
 
-- Acesso ao Proxmox com token de API
+- Acesso ao Proxmox com usuário e senha, preferencialmente `root@pam`
 - Chave pública SSH opcional em `~/.ssh/id_ed25519.pub`
 
 ## Como usar
@@ -40,9 +40,8 @@ cd terraform
 3. Crie um arquivo `terraform.tfvars` com seus dados:
 
 ```hcl
-proxmox_endpoint  = "https://pve.example.com:8006/"
-proxmox_api_token = "user@pam!tokenid=secret"
-proxmox_insecure  = false
+proxmox_endpoint = "https://pve.example.com:8006/"
+proxmox_insecure = false
 
 instances = {
   "vm-01" = {
@@ -125,9 +124,13 @@ As tags disponíveis são `docker`, `firewall`, `shell`, `ssh` e `tools`. Para e
 
 Endpoint da API do Proxmox, por exemplo `https://pve.example.com:8006/`.
 
-### `proxmox_api_token`
+### `proxmox_username`
 
-Token no formato `user@realm!tokenid=secret`.
+Usuário usado na API do Proxmox. O padrão é `root@pam`.
+
+### `proxmox_password`
+
+Senha do usuário da API. Recomenda-se fornecê-la pela variável de ambiente `TF_VAR_proxmox_password`.
 
 ### `proxmox_insecure`
 

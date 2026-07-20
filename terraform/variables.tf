@@ -3,8 +3,14 @@ variable "proxmox_endpoint" {
   type        = string
 }
 
-variable "proxmox_api_token" {
-  description = "Proxmox API token in the form user@realm!tokenid=secret"
+variable "proxmox_username" {
+  description = "Proxmox API username, for example root@pam"
+  type        = string
+  default     = "root@pam"
+}
+
+variable "proxmox_password" {
+  description = "Proxmox API password"
   type        = string
   sensitive   = true
 }

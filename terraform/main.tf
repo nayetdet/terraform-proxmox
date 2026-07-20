@@ -13,9 +13,10 @@ terraform {
 }
 
 provider "proxmox" {
-  endpoint  = var.proxmox_endpoint
-  api_token = var.proxmox_api_token
-  insecure  = var.proxmox_insecure
+  endpoint = var.proxmox_endpoint
+  username = var.proxmox_username
+  password = var.proxmox_password
+  insecure = var.proxmox_insecure
 }
 
 locals {
@@ -101,6 +102,10 @@ resource "proxmox_virtual_environment_container" "container" {
 
   node_name     = each.value.node
   vm_id         = each.value.id
+
+  features {
+    nesting = true
+  }
 
   cpu {
     cores = each.value.resources.cores
