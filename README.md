@@ -1,17 +1,18 @@
 # Terraform Proxmox
 
-Provisiona VMs no Proxmox via Terraform usando a provider `bpg/proxmox`.
+Provisiona VMs e containers LXC no Proxmox via Terraform usando o provider `bpg/proxmox`.
 
 ## O que ele faz
 
 - Conecta no endpoint da API do Proxmox com token.
-- Cria uma ou mais VMs a partir de uma definição em `terraform/variables.tf` via `var.vms`.
+- Cria VMs e containers LXC a partir de uma definição única em `var.instances`.
+- Usa `type = "vm"` ou `type = "container"` para escolher o tipo.
 - Configura CPU, memória, disco, rede, usuário e senha inicial.
-- Gera o inventory do Ansible em `ansible/inventory.ini`.
+- Gera o inventory do Ansible em `ansible/inventory.ini`, com os grupos `vm` e `container`.
 
 ## Estrutura
 
-- `terraform/main.tf`: configuração do provider e recursos de criação das VMs.
+- `terraform/main.tf`: configuração do provider e recursos de criação das instâncias.
 - `terraform/variables.tf`: variáveis de entrada.
 - `terraform/terraform.tfvars`: exemplo de valores locais para o Terraform.
 - `shell.nix`: ambiente com `terraform`.
@@ -43,12 +44,11 @@ proxmox_endpoint  = "https://pve.example.com:8006/"
 proxmox_api_token = "user@pam!tokenid=secret"
 proxmox_insecure  = false
 
-vms = {
+instances = {
   "vm-01" = {
-    metadata = {
-      vm_id   = 101
-      vm_node = "pve01"
-    }
+    id   = 101
+    node = "pve01"
+    type = "vm"
     user = {
       username = "ubuntu"
       password = "changeme"
@@ -60,6 +60,24 @@ vms = {
     }
     networking = {
       ipv4    = "192.168.1.101/24"
+      gateway = "192.168.1.1"
+    }
+  }
+  "lxc-01" = {
+    id   = 201
+    node = "pve01"
+    type = "container"
+    user = {
+      username = "root"
+      password = "changeme"
+    }
+    resources = {
+      cores   = 1
+      ram_mb  = 512
+      disk_gb = 8
+    }
+    networking = {
+      ipv4    = "192.168.1.201/24"
       gateway = "192.168.1.1"
     }
   }
@@ -107,12 +125,22 @@ Token no formato `user@realm!tokenid=secret`.
 
 Define se a verificação TLS deve ser ignorada. O padrão é `false`.
 
-### `vms`
+### Imagens
 
-Mapa de VMs, indexado pelo nome da VM. Cada entrada espera:
+- `vm_image_filename`: nome do arquivo da imagem da VM no Proxmox
+- `vm_image_url`: URL da imagem da VM
+- `container_image_filename`: nome do arquivo da imagem do container no Proxmox
+- `container_image_url`: URL da imagem do container
 
-- `metadata.vm_id`: ID numérico da VM no Proxmox
-- `metadata.vm_node`: nó do Proxmox onde a VM será criada
+As quatro variáveis têm defaults para Ubuntu 26.04 e podem ser sobrescritas no `terraform.tfvars`.
+
+### `instances`
+
+Mapa único de instâncias, indexado pelo nome. Cada entrada espera:
+
+- `id`: ID numérico da VM ou container no Proxmox
+- `node`: nó do Proxmox onde a instância será criada
+- `type`: `vm` ou `container`
 - `user.username`: usuário inicial da VM
 - `user.password`: senha inicial da VM
 - `resources.cores`: quantidade de vCPUs
@@ -120,3 +148,5 @@ Mapa de VMs, indexado pelo nome da VM. Cada entrada espera:
 - `resources.disk_gb`: tamanho do disco em GB
 - `networking.ipv4`: IP com prefixo, por exemplo `192.168.1.101/24`
 - `networking.gateway`: gateway padrão
+
+Instâncias `container` são criadas como privileged. O template usado pelos containers é a imagem oficial Ubuntu 26.04 para LXD/LXC.

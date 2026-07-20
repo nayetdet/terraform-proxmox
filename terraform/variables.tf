@@ -15,13 +15,36 @@ variable "proxmox_insecure" {
   default     = false
 }
 
-variable "vms" {
-  description = "Map of VM definitions keyed by VM name"
+variable "vm_image_filename" {
+  description = "Filename used to store the VM image in Proxmox"
+  type        = string
+  default     = "ubuntu-26.04-server-cloudimg-amd64.qcow2"
+}
+
+variable "vm_image_url" {
+  description = "URL of the VM image"
+  type        = string
+  default     = "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-amd64.img"
+}
+
+variable "container_image_filename" {
+  description = "Filename used to store the container image in Proxmox"
+  type        = string
+  default     = "ubuntu-26.04-server-cloudimg-amd64-root.tar.xz"
+}
+
+variable "container_image_url" {
+  description = "URL of the container image"
+  type        = string
+  default     = "https://cloud-images.ubuntu.com/releases/server/server/26.04/release/ubuntu-26.04-server-cloudimg-amd64-root.tar.xz"
+}
+
+variable "instances" {
+  description = "Map of VM and LXC definitions keyed by instance name"
   type = map(object({
-    metadata = object({
-      vm_id   = number
-      vm_node = string
-    })
+    id   = number
+    node = string
+    type = string
     user = object({
       username = string
       password = string
@@ -36,4 +59,10 @@ variable "vms" {
       gateway = string
     })
   }))
+  validation {
+    condition = alltrue([
+      for instance in values(var.instances) : contains(["vm", "container"], instance.type)
+    ])
+    error_message = "instances.type must be one of: vm, container."
+  }
 }
