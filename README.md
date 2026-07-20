@@ -111,6 +111,14 @@ cd ansible
 ansible-playbook playbook.yml
 ```
 
+Para executar somente algumas roles, use as tags correspondentes:
+
+```bash
+ansible-playbook playbook.yml --tags "docker,ssh"
+```
+
+As tags disponíveis são `docker`, `firewall`, `shell`, `ssh` e `tools`. Para executar todas as roles, omita `--tags`; para ignorar uma role específica, use `--skip-tags`.
+
 ## Variáveis
 
 ### `proxmox_endpoint`

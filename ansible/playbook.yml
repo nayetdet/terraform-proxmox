@@ -2,8 +2,17 @@
 - hosts: all
   become: yes
   roles:
-    - docker
-    - firewall
-    - shell
-    - ssh
-    - tools
+    - role: docker
+      tags: [docker]
+
+    - role: firewall
+      tags: [firewall]
+
+    - role: shell
+      tags: [shell]
+
+    - role: ssh
+      tags: [ssh]
+
+    - role: tools
+      tags: [tools]
