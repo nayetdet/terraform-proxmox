@@ -61,7 +61,9 @@
     dest: "{{ zsh_home }}/.zshrc"
     content: |
       export ZSH="{{ zsh_oh_my_zsh_dir }}"
-      ZSH_THEME="gentoo"
+      ZSH_THEME="gentoo
+      zstyle ':omz:update' mode auto
+      zstyle ':omz:update' frequency 7
       plugins=(git zsh-completions zsh-autosuggestions zsh-syntax-highlighting)
       source $ZSH/oh-my-zsh.sh
     owner: "{{ user }}"
