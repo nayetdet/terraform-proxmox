@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: vm
   become: yes
   roles:
     - role: docker
