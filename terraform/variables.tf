@@ -39,6 +39,12 @@ variable "container_image_url" {
   default     = "https://cloud-images.ubuntu.com/releases/server/server/26.04/release/ubuntu-26.04-server-cloudimg-amd64-root.tar.xz"
 }
 
+variable "container_os_type" {
+  description = "Operating system type used by Proxmox to configure the container"
+  type        = string
+  default     = "ubuntu"
+}
+
 variable "instances" {
   description = "Map of VM and LXC definitions keyed by instance name"
   type = map(object({

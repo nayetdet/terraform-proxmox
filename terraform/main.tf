@@ -117,6 +117,7 @@ resource "proxmox_virtual_environment_container" "container" {
 
   operating_system {
     template_file_id = proxmox_download_file.container_image[each.value.node].id
+    type             = var.container_os_type
   }
 
   initialization {

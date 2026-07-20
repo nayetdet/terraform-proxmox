@@ -139,6 +139,7 @@ Define se a verificação TLS deve ser ignorada. O padrão é `false`.
 - `vm_image_url`: URL da imagem da VM
 - `container_image_filename`: nome do arquivo da imagem do container no Proxmox
 - `container_image_url`: URL da imagem do container
+- `container_os_type`: tipo do sistema operacional usado pelo Proxmox para configurar o container
 
 As quatro variáveis têm defaults para Ubuntu 26.04 e podem ser sobrescritas no `terraform.tfvars`.
 
