@@ -1,5 +1,5 @@
 ---
-- hosts: vm
+- hosts: vms
   become: yes
   roles:
     - docker
@@ -7,4 +7,3 @@
     - shell
     - ssh
     - tools
-  
