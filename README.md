@@ -1,43 +1,43 @@
 # Terraform Proxmox
 
-Provisiona VMs e containers LXC no Proxmox via Terraform usando o provider `bpg/proxmox`.
+Provisioning and configuration of Proxmox VMs and LXC containers with Terraform and Ansible.
 
-## O que ele faz
+## What it does
 
-- Conecta no endpoint da API do Proxmox com `root@pam`.
-- Cria VMs e containers LXC a partir de uma definição única em `var.instances`.
-- Usa `type = "vm"` ou `type = "container"` para escolher o tipo.
-- Configura CPU, memória, disco, rede, usuário e senha inicial.
-- Gera o inventory do Ansible em `ansible/inventory.ini`, com os grupos `vm` e `container`.
+- Connects to the Proxmox API endpoint using `root@pam`.
+- Creates VMs and LXC containers from a single definition in `var.instances`.
+- Uses `type = "vm"` or `type = "container"` to select the instance type.
+- Configures CPU, memory, disks, networking, users, and initial passwords.
+- Generates the Ansible inventory at `ansible/inventory.ini`, with `vm` and `container` groups.
 
-## Estrutura
+## Structure
 
-- `terraform/main.tf`: configuração do provider e recursos de criação das instâncias.
-- `terraform/variables.tf`: variáveis de entrada.
-- `terraform/terraform.tfvars`: exemplo de valores locais para o Terraform.
-- `shell.nix`: ambiente com `terraform`.
-- `ansible/inventory.ini`: inventory gerado automaticamente pelo Terraform e usado pelo Ansible.
+- `terraform/main.tf`: provider configuration and instance creation resources.
+- `terraform/variables.tf`: input variables.
+- `terraform/terraform.tfvars`: example local Terraform values.
+- `shell.nix`: environment containing `terraform`.
+- `ansible/inventory.ini`: inventory generated automatically by Terraform and used by Ansible.
 
-## Requisitos
+## Requirements
 
-- Acesso ao Proxmox com usuário e senha, preferencialmente `root@pam`
-- Chave pública SSH opcional em `~/.ssh/id_ed25519.pub`
+- Access to Proxmox with a username and password, preferably `root@pam`.
+- An optional SSH public key at `~/.ssh/id_ed25519.pub`.
 
-## Como usar
+## Usage
 
-1. Entre no ambiente, se usar Nix:
+1. Enter the environment if you use Nix:
 
 ```bash
 nix-shell
 ```
 
-2. Entre na pasta do Terraform:
+2. Enter the Terraform directory:
 
 ```bash
 cd terraform
 ```
 
-3. Crie um arquivo `terraform.tfvars` com seus dados:
+3. Create a `terraform.tfvars` file with your values:
 
 ```hcl
 proxmox_endpoint = "https://pve.example.com:8006/"
@@ -53,9 +53,11 @@ instances = {
       password = "changeme"
     }
     resources = {
-      cores   = 2
-      ram_mb  = 2048
-      disk_gb = 20
+      architecture = "x86_64"
+      cpu_type     = "x86-64-v2"
+      cores        = 2
+      ram_mb       = 2048
+      disk_gb      = 20
     }
     networking = {
       ipv4    = "192.168.1.101/24"
@@ -83,82 +85,84 @@ instances = {
 }
 ```
 
-4. Inicialize o Terraform:
+4. Initialize Terraform:
 
 ```bash
 terraform init
 ```
 
-5. Revise o plano:
+5. Review the plan:
 
 ```bash
 terraform plan
 ```
 
-6. Aplique:
+6. Apply the configuration:
 
 ```bash
 terraform apply
 ```
 
-Isso também gera `ansible/inventory.ini` com os hosts provisionados.
+This also generates `ansible/inventory.ini` with the provisioned hosts.
 
-7. Rode o Ansible a partir da pasta `ansible/`:
+7. Run Ansible from the `ansible/` directory:
 
 ```bash
 cd ansible
 ansible-playbook playbook.yml
 ```
 
-Para executar somente algumas roles, use as tags correspondentes:
+To run only specific roles, use the corresponding tags:
 
 ```bash
 ansible-playbook playbook.yml --tags "docker,ssh"
 ```
 
-As tags disponíveis são `docker`, `firewall`, `shell`, `ssh` e `tools`. Para executar todas as roles, omita `--tags`; para ignorar uma role específica, use `--skip-tags`.
+The available tags are `docker`, `firewall`, `shell`, `ssh`, and `tools`. To run all roles, omit `--tags`; to skip a specific role, use `--skip-tags`.
 
-## Variáveis
+## Variables
 
 ### `proxmox_endpoint`
 
-Endpoint da API do Proxmox, por exemplo `https://pve.example.com:8006/`.
+Proxmox API endpoint, for example `https://pve.example.com:8006/`.
 
 ### `proxmox_username`
 
-Usuário usado na API do Proxmox. O padrão é `root@pam`.
+Username used for the Proxmox API. The default is `root@pam`.
 
 ### `proxmox_password`
 
-Senha do usuário da API. Recomenda-se fornecê-la pela variável de ambiente `TF_VAR_proxmox_password`.
+API user password. It is recommended to provide it through the `TF_VAR_proxmox_password` environment variable.
 
 ### `proxmox_insecure`
 
-Define se a verificação TLS deve ser ignorada. O padrão é `false`.
+Whether TLS certificate verification should be skipped. The default is `false`.
 
-### Imagens
+### Images
 
-- `vm_image_filename`: nome do arquivo da imagem da VM no Proxmox
-- `vm_image_url`: URL da imagem da VM
-- `container_image_filename`: nome do arquivo da imagem do container no Proxmox
-- `container_image_url`: URL da imagem do container
-- `container_os_type`: tipo do sistema operacional usado pelo Proxmox para configurar o container
+- `vm_image_filename`: VM image filename on Proxmox.
+- `vm_image_url`: VM image URL.
+- `container_image_filename`: container image filename on Proxmox.
+- `container_image_url`: container image URL.
+- `container_os_type`: operating system type used by Proxmox to configure the container.
 
-As quatro variáveis têm defaults para Ubuntu 26.04 e podem ser sobrescritas no `terraform.tfvars`.
+All four variables default to Ubuntu 26.04 and can be overridden in `terraform.tfvars`.
 
 ### `instances`
 
-Mapa único de instâncias, indexado pelo nome. Cada entrada espera:
+Single map of instances, indexed by name. Each entry expects:
 
-- `id`: ID numérico da VM ou container no Proxmox
-- `node`: nó do Proxmox onde a instância será criada
-- `type`: `vm` ou `container`
-- `user.username`: usuário inicial da VM
-- `user.password`: senha inicial da VM
-- `resources.cores`: quantidade de vCPUs
-- `resources.ram_mb`: memória em MB
-- `resources.disk_gb`: tamanho do disco em GB
-- `networking.ipv4`: IP com prefixo, por exemplo `192.168.1.101/24`
-- `networking.gateway`: gateway padrão
+- `id`: numeric ID of the VM or container on Proxmox.
+- `node`: Proxmox node where the instance will be created.
+- `type`: `vm` or `container`.
+- `user.username`: initial VM user.
+- `user.password`: initial VM password.
+- `resources.architecture`: VM CPU architecture, such as `x86_64` or `aarch64` (default: `x86_64`).
+- `resources.cpu_type`: CPU model exposed to the VM (default: `x86-64-v2`).
+- `resources.cores`: number of vCPUs.
+- `resources.ram_mb`: memory in MB.
+- `resources.disk_gb`: disk size in GB.
+- `networking.ipv4`: IP address with prefix, such as `192.168.1.101/24`.
+- `networking.gateway`: default gateway.
 
-Instâncias `container` são criadas como privileged. O template usado pelos containers é a imagem oficial Ubuntu 26.04 para LXD/LXC.
+`container` instances are created as privileged containers. The template used by the containers is the official Ubuntu 26.04 image for LXD/LXC.

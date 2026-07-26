@@ -62,9 +62,11 @@ variable "instances" {
       password = string
     })
     resources = object({
-      cores   = number
-      ram_mb  = number
-      disk_gb = number
+      architecture = optional(string, "x86_64")
+      cpu_type     = optional(string, "x86-64-v2")
+      cores        = number
+      ram_mb       = number
+      disk_gb      = number
     })
     networking = object({
       ipv4    = string

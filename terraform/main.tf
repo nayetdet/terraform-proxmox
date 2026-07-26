@@ -34,23 +34,25 @@ resource "local_file" "ansible_inventory" {
 resource "proxmox_download_file" "vm_image" {
   for_each = toset([for vm in values(local.vm_instances) : vm.node])
 
-  content_type   = "import"
-  datastore_id   = "local"
-  file_name      = var.vm_image_filename
-  node_name      = each.value
-  url            = var.vm_image_url
-  upload_timeout = 3600
+  content_type        = "import"
+  datastore_id        = "local"
+  file_name           = var.vm_image_filename
+  node_name           = each.value
+  url                 = var.vm_image_url
+  overwrite_unmanaged = true
+  upload_timeout      = 3600
 }
 
 resource "proxmox_download_file" "container_image" {
   for_each = toset([for container in values(local.container_instances) : container.node])
 
-  content_type   = "vztmpl"
-  datastore_id   = "local"
-  file_name      = var.container_image_filename
-  node_name      = each.value
-  url            = var.container_image_url
-  upload_timeout = 3600
+  content_type        = "vztmpl"
+  datastore_id        = "local"
+  file_name           = var.container_image_filename
+  node_name           = each.value
+  url                 = var.container_image_url
+  overwrite_unmanaged = true
+  upload_timeout      = 3600
 }
 
 resource "proxmox_virtual_environment_vm" "vm" {
@@ -61,7 +63,9 @@ resource "proxmox_virtual_environment_vm" "vm" {
   vm_id     = each.value.id
 
   cpu {
-    cores = each.value.resources.cores
+    architecture = each.value.resources.architecture
+    cores        = each.value.resources.cores
+    type         = each.value.resources.cpu_type
   }
 
   memory {
@@ -100,8 +104,8 @@ resource "proxmox_virtual_environment_vm" "vm" {
 resource "proxmox_virtual_environment_container" "container" {
   for_each = local.container_instances
 
-  node_name     = each.value.node
-  vm_id         = each.value.id
+  node_name = each.value.node
+  vm_id     = each.value.id
 
   features {
     nesting = true
