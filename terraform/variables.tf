@@ -51,12 +51,11 @@ variable "container_os_type" {
   default     = "ubuntu"
 }
 
-variable "instances" {
-  description = "Map of VM and LXC definitions keyed by instance name"
+variable "vms" {
+  description = "Map of VM definitions keyed by VM name"
   type = map(object({
     id   = number
     node = string
-    type = string
     user = object({
       username = string
       password = string
@@ -73,10 +72,42 @@ variable "instances" {
       gateway = string
     })
   }))
-  validation {
-    condition = alltrue([
-      for instance in values(var.instances) : contains(["vm", "container"], instance.type)
-    ])
-    error_message = "instances.type must be one of: vm, container."
-  }
+  default = {}
+}
+
+variable "containers" {
+  description = "Map of LXC container definitions keyed by container name"
+  type = map(object({
+    id   = number
+    node = string
+    user = object({
+      password = string
+    })
+    resources = object({
+      architecture = optional(string, "x86_64")
+      cpu_type     = optional(string, "x86-64-v2")
+      cores        = number
+      ram_mb       = number
+      disk_gb      = number
+    })
+    features = optional(object({
+      fuse    = optional(bool)
+      keyctl  = optional(bool, false)
+      mknod   = optional(bool)
+      nesting = optional(bool, true)
+      mount   = optional(list(string))
+    }), {})
+    devices = optional(list(object({
+      path       = string
+      deny_write = optional(bool)
+      gid        = optional(number)
+      mode       = optional(string)
+      uid        = optional(number)
+    })), [])
+    networking = object({
+      ipv4    = string
+      gateway = string
+    })
+  }))
+  default = {}
 }

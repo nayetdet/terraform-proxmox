@@ -5,8 +5,7 @@ Provisioning and configuration of Proxmox VMs and LXC containers with Terraform 
 ## What it does
 
 - Connects to the Proxmox API endpoint using `root@pam`.
-- Creates VMs and LXC containers from a single definition in `var.instances`.
-- Uses `type = "vm"` or `type = "container"` to select the instance type.
+- Creates VMs from `var.vms` and LXC containers from `var.containers`.
 - Configures CPU, memory, disks, networking, users, and initial passwords.
 - Generates the Ansible inventory at `ansible/inventory.ini`, with `vm` and `container` groups.
 
@@ -43,11 +42,10 @@ cd terraform
 proxmox_endpoint = "https://pve.example.com:8006/"
 proxmox_insecure = false
 
-instances = {
+vms = {
   "vm-01" = {
     id   = 101
     node = "pve01"
-    type = "vm"
     user = {
       username = "ubuntu"
       password = "changeme"
@@ -64,12 +62,13 @@ instances = {
       gateway = "192.168.1.1"
     }
   }
+}
+
+containers = {
   "lxc-01" = {
     id   = 201
     node = "pve01"
-    type = "container"
     user = {
-      username = "root"
       password = "changeme"
     }
     resources = {
@@ -148,21 +147,39 @@ Whether TLS certificate verification should be skipped. The default is `false`.
 
 All four variables default to Ubuntu 26.04 and can be overridden in `terraform.tfvars`.
 
-### `instances`
+### `vms` and `containers`
 
-Single map of instances, indexed by name. Each entry expects:
+Maps of VMs and LXC containers, indexed by name. Each entry expects:
 
 - `id`: numeric ID of the VM or container on Proxmox.
 - `node`: Proxmox node where the instance will be created.
-- `type`: `vm` or `container`.
-- `user.username`: initial VM user.
-- `user.password`: initial VM password.
+- `user.username`: initial VM user (VMs only).
+- `user.password`: initial password. Containers always use `root` as the user.
 - `resources.architecture`: VM CPU architecture, such as `x86_64` or `aarch64` (default: `x86_64`).
 - `resources.cpu_type`: CPU model exposed to the VM (default: `x86-64-v2`).
 - `resources.cores`: number of vCPUs.
 - `resources.ram_mb`: memory in MB.
 - `resources.disk_gb`: disk size in GB.
+- `features`: generic LXC features. `keyctl` is disabled by default and `nesting` is enabled by default, but can be disabled explicitly.
+- `devices`: list of devices passed through to the container. By default, no devices are passed through.
 - `networking.ipv4`: IP address with prefix, such as `192.168.1.101/24`.
 - `networking.gateway`: default gateway.
 
-`container` instances are created as privileged containers. The template used by the containers is the official Ubuntu 26.04 image for LXD/LXC.
+Entries in `containers` are created as privileged containers. The template used by the containers is the official Ubuntu 26.04 image for LXD/LXC.
+
+For example, container-specific settings can be overridden generically:
+
+```hcl
+containers = {
+  "lxc-01" = {
+    # ... id, node, user, resources and networking ...
+    features = {
+      keyctl  = true
+      nesting = true
+    }
+    devices = [
+      { path = "/dev/net/tun" }
+    ]
+  }
+}
+```

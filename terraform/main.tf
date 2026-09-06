@@ -20,8 +20,8 @@ provider "proxmox" {
 }
 
 locals {
-  vm_instances        = { for name, instance in var.instances : name => instance if instance.type == "vm" }
-  container_instances = { for name, instance in var.instances : name => instance if instance.type != "vm" }
+  vm_instances        = var.vms
+  container_instances = var.containers
   ssh_keys            = fileexists(pathexpand("~/.ssh/id_ed25519.pub")) ? [file(pathexpand("~/.ssh/id_ed25519.pub"))] : []
 }
 
@@ -108,7 +108,23 @@ resource "proxmox_virtual_environment_container" "container" {
   vm_id     = each.value.id
 
   features {
-    nesting = true
+    fuse    = each.value.features.fuse
+    keyctl  = each.value.features.keyctl
+    mknod   = each.value.features.mknod
+    nesting = each.value.features.nesting
+    mount   = each.value.features.mount
+  }
+
+  dynamic "device_passthrough" {
+    for_each = each.value.devices
+
+    content {
+      path       = device_passthrough.value.path
+      deny_write = device_passthrough.value.deny_write
+      gid        = device_passthrough.value.gid
+      mode       = device_passthrough.value.mode
+      uid        = device_passthrough.value.uid
+    }
   }
 
   cpu {
